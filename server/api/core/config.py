@@ -11,6 +11,12 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str = "Sales Automation"
 
+    # maximum upload size (200MB)
+    MAX_FILE_SIZE: int = 200 * 1024 * 1024
+
+    # maximum number of rows in CSV file (1 million)
+    MAX_NUMBER_OF_ROWS: int = 1000000
+
     class Config:
         case_sensitive = True
 
