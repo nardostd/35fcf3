@@ -13,6 +13,7 @@ import hashlib
 
 router = APIRouter(prefix="/api", tags=["prospects_files"])
 
+
 @router.post("/prospect_files/import", status_code=status.HTTP_202_ACCEPTED)
 async def import_prospects(
     file: UploadFile = File(...),
@@ -22,7 +23,7 @@ async def import_prospects(
     force: Optional[bool] = Form(None),
     has_header: Optional[bool] = Form(None),
     current_user: schemas.User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Submit uploaded file to background process and send CREATED status code"""
 
@@ -30,14 +31,14 @@ async def import_prospects(
     if not current_user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Unauthorized request. Client needs to login first."
+            detail="Unauthorized request. Client needs to login first.",
         )
 
     # accept only text/plain
     if file.content_type != "text/plain":
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="File must be a plain text file."
+            detail="File must be a plain text file.",
         )
 
     # read the contents of uploaded file
@@ -47,7 +48,7 @@ async def import_prospects(
     if len(contents) > settings.MAX_FILE_SIZE:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File too large (max allowed size = {settings.MAX_FILE_SIZE / (1024 * 1024)} MB)."
+            detail=f"File too large (max allowed size = {settings.MAX_FILE_SIZE / (1024 * 1024)} MB).",
         )
 
     # TODO schdule background task here...
@@ -57,23 +58,19 @@ async def import_prospects(
         # required fields
         "file_name": file.filename,
         "email_index": email_index,
-
         # optional fields with default values
         "first_name_index": (first_name_index, -1)[not first_name_index],
         "last_name_index": (last_name_index, -1)[not last_name_index],
         "has_header": (has_header, False)[not has_header],
-
         # derived fields
         "file_size": len(contents),
         "sha512_digest": hashlib.sha512(contents).hexdigest(),
         "uploaded_at": datetime.now(),
     }
-    
+
     # persist the uploaded file meta data
     prospect_file = ProspectFileCrud.create_prospects_file(
-        db,
-        current_user.id,
-        prospect_file_meta_data
+        db, current_user.id, prospect_file_meta_data
     )
 
     # schedule importing task

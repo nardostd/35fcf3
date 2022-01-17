@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel
 
+
 class ProspectFile(BaseModel):
     id: int
     file_name: str
@@ -18,6 +19,7 @@ class ProspectFile(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class ProspectFileCreate(BaseModel):
     file_name: str

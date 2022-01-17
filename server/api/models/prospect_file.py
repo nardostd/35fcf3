@@ -24,7 +24,9 @@ class ProspectFile(Base):
     uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
     user_id = Column(BigInteger, ForeignKey("users.id"))
 
-    uploaded_by = relationship("User", back_populates="prospect_files", foreign_keys=[user_id])
+    uploaded_by = relationship(
+        "User", back_populates="prospect_files", foreign_keys=[user_id]
+    )
 
     def __repr__(self):
         return f"{self.id} | {self.sha512_digest}"
