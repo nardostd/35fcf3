@@ -7,16 +7,13 @@ from api import schemas
 from api.dependencies.auth import get_current_user, get_token
 from api.dependencies.db import get_db
 from api.core.config import settings
-from api.crud import ProspectsFileCrud
-from api.models import ProspectsFile
+from api.crud import ProspectFileCrud
 from api.tasks import simple_importer
 import hashlib
 
-from api.schemas.prospects_file import ProspectsFileCreate
-
 router = APIRouter(prefix="/api", tags=["prospects_files"])
 
-@router.post("/prospects_files/import", status_code=status.HTTP_202_ACCEPTED)
+@router.post("/prospect_files/import", status_code=status.HTTP_202_ACCEPTED)
 async def import_prospects(
     file: UploadFile = File(...),
     email_index: int = Form(...),
@@ -56,7 +53,7 @@ async def import_prospects(
     # TODO schdule background task here...
 
     # meta data of uploaded file
-    prospects_file_meta_data = {
+    prospect_file_meta_data = {
         # required fields
         "file_name": file.filename,
         "email_index": email_index,
@@ -73,11 +70,11 @@ async def import_prospects(
     }
     
     # persist the uploaded file meta data
-    prospects_file = ProspectsFileCrud.create_prospects_file(
+    prospect_file = ProspectFileCrud.create_prospects_file(
         db,
         current_user.id,
-        prospects_file_meta_data
+        prospect_file_meta_data
     )
 
     # schedule importing task
-    simple_importer.process_file(prospects_file.id, force)
+    simple_importer.process_file(prospect_file.id, force)

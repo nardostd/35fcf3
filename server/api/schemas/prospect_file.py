@@ -1,9 +1,8 @@
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel
-from pydantic.networks import EmailStr
 
-class ProspectsFile(BaseModel):
+class ProspectFile(BaseModel):
     id: int
     file_name: str
     file_size: int
@@ -20,7 +19,7 @@ class ProspectsFile(BaseModel):
     class Config:
         orm_mode = True
 
-class ProspectsFileCreate(BaseModel):
+class ProspectFileCreate(BaseModel):
     file_name: str
     file_size: int
     sha512_digest: str

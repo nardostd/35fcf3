@@ -6,10 +6,10 @@ from sqlalchemy.sql.sqltypes import BigInteger, Integer, String, DateTime, Boole
 from api.database import Base
 
 
-class ProspectsFile(Base):
-    """Prospects Files Table"""
+class ProspectFile(Base):
+    """Prospect Files Table"""
 
-    __tablename__ = "prospects_files"
+    __tablename__ = "prospect_files"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True, unique=True)
     file_name = Column(String, index=True, nullable=False)
@@ -24,7 +24,7 @@ class ProspectsFile(Base):
     uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
     user_id = Column(BigInteger, ForeignKey("users.id"))
 
-    uploaded_by = relationship("User", back_populates="prospects_files", foreign_keys=[user_id])
+    uploaded_by = relationship("User", back_populates="prospect_files", foreign_keys=[user_id])
 
     def __repr__(self):
         return f"{self.id} | {self.sha512_digest}"

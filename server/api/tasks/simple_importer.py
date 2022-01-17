@@ -3,8 +3,8 @@ import logging
 from sqlalchemy.orm.session import Session
 from fastapi import Depends, logger
 from api.dependencies.db import get_db
-from api.schemas.prospects_file import ProspectsFile, ProspectsFileCreate
-from api.crud import ProspectsFileCrud
+from api.schemas.prospect_file import ProspectFile, ProspectFileCreate
+from api.crud import ProspectFileCrud
 
 logging.basicConfig(level = logging.INFO)
 log = logger.logger
