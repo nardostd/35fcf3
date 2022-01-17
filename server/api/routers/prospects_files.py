@@ -1,3 +1,5 @@
+from datetime import datetime
+import imp
 from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Depends, File, Form, UploadFile
 from sqlalchemy.orm.session import Session
@@ -5,6 +7,12 @@ from api import schemas
 from api.dependencies.auth import get_current_user, get_token
 from api.dependencies.db import get_db
 from api.core.config import settings
+from api.crud import ProspectsFileCrud
+from api.models import ProspectsFile
+from api.tasks import simple_importer
+import hashlib
+
+from api.schemas.prospects_file import ProspectsFileCreate
 
 router = APIRouter(prefix="/api", tags=["prospects_files"])
 
@@ -47,12 +55,29 @@ async def import_prospects(
 
     # TODO schdule background task here...
 
-    return {
+    # meta data of uploaded file
+    prospects_file_meta_data = {
+        # required fields
         "file_name": file.filename,
-        "file_size": len(contents),
         "email_index": email_index,
+
+        # optional fields with default values
         "first_name_index": (first_name_index, -1)[not first_name_index],
         "last_name_index": (last_name_index, -1)[not last_name_index],
-        "force": (force, False)[not force],
-        "has_header": (has_header, False)[not has_header]
+        "has_header": (has_header, False)[not has_header],
+
+        # derived fields
+        "file_size": len(contents),
+        "sha512_digest": hashlib.sha512(contents).hexdigest(),
+        "uploaded_at": datetime.now(),
     }
+    
+    # persist the uploaded file meta data
+    prospects_file = ProspectsFileCrud.create_prospects_file(
+        db,
+        current_user.id,
+        prospects_file_meta_data
+    )
+
+    # schedule importing task
+    simple_importer.process_file(prospects_file.id, force)
