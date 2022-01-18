@@ -1,5 +1,4 @@
 import logging
-import logging
 from sqlalchemy.orm.session import Session
 from fastapi import Depends, logger
 from api.dependencies.db import get_db

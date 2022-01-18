@@ -8,6 +8,7 @@ class ProspectFile(BaseModel):
     file_name: str
     file_size: int
     sha512_digest: str
+    file_path: str
     email_index: int
     first_name_index: int
     last_name_index: int
@@ -25,6 +26,7 @@ class ProspectFileCreate(BaseModel):
     file_name: str
     file_size: int
     sha512_digest: str
+    file_path: str
     email_index: int
     first_name_index: Optional[int]
     last_name_index: Optional[int]

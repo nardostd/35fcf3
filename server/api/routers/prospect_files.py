@@ -1,5 +1,4 @@
 from datetime import datetime
-import imp
 from typing import Optional
 from fastapi import APIRouter, HTTPException, status, Depends, File, Form, UploadFile
 from sqlalchemy.orm.session import Session
@@ -68,9 +67,9 @@ async def import_prospects(
         "uploaded_at": datetime.now(),
     }
 
-    # persist the uploaded file meta data
-    prospect_file = ProspectFileCrud.create_prospects_file(
-        db, current_user.id, prospect_file_meta_data
+    # persist the uploaded file meta data into database
+    prospect_file = ProspectFileCrud.create_prospect_file(
+        db, current_user.id, prospect_file_meta_data, contents
     )
 
     # schedule importing task

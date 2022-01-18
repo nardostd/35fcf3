@@ -14,15 +14,18 @@ class ProspectFile(Base):
     id = Column(BigInteger, primary_key=True, autoincrement=True, unique=True)
     file_name = Column(String, index=True, nullable=False)
     file_size = Column(BigInteger, nullable=False)
-    sha512_digest = Column(String, index=True, unique=True)
+    sha512_digest = Column(String, index=True, unique=False, nullable=False)
+    file_path = Column(String, nullable=False)
     email_index = Column(Integer, nullable=False)
     first_name_index = Column(Integer, nullable=False)
     last_name_index = Column(Integer, nullable=False)
     has_header = Column(Boolean, nullable=False)
     rows_total = Column(Integer, nullable=False)
     rows_done = Column(Integer, nullable=False)
-    uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
-    user_id = Column(BigInteger, ForeignKey("users.id"))
+    uploaded_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    user_id = Column(BigInteger, ForeignKey("users.id"), nullable=False)
 
     uploaded_by = relationship(
         "User", back_populates="prospect_files", foreign_keys=[user_id]
