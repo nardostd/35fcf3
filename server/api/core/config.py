@@ -1,3 +1,4 @@
+from turtle import st
 from dotenv import dotenv_values
 from pydantic import BaseSettings
 
@@ -16,6 +17,9 @@ class Settings(BaseSettings):
 
     # maximum number of rows in CSV file (1 million)
     MAX_NUMBER_OF_ROWS: int = 1000000
+
+    # CSV file store
+    CSV_FILES_PATH: str = config.get("CSV_FILES_PATH")
 
     class Config:
         case_sensitive = True
