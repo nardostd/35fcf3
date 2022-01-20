@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     # CSV file store
     CSV_FILES_PATH: str = config.get("CSV_FILES_PATH")
 
+    # Allowed mime-types
+    ALLOWED_MIME_TYPES: set = {"text/csv", "text/plain"}
+
     class Config:
         case_sensitive = True
 
