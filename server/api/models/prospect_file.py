@@ -20,6 +20,7 @@ class ProspectFile(Base):
     first_name_index = Column(Integer, nullable=False)
     last_name_index = Column(Integer, nullable=False)
     has_header = Column(Boolean, nullable=False)
+    force = Column(Boolean, nullable=False)
     rows_total = Column(Integer, nullable=False)
     rows_done = Column(Integer, nullable=False)
     uploaded_at = Column(

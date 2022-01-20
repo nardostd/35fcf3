@@ -13,6 +13,7 @@ class ProspectFile(BaseModel):
     first_name_index: int
     last_name_index: int
     has_header: bool
+    force: bool
     rows_total: int
     rows_done: int
     uploaded_at: datetime
@@ -31,4 +32,5 @@ class ProspectFileCreate(BaseModel):
     first_name_index: Optional[int]
     last_name_index: Optional[int]
     has_header: bool
+    force: bool
     uploaded_at: datetime

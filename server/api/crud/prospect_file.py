@@ -1,4 +1,3 @@
-from datetime import datetime
 import hashlib
 import uuid
 import logging
@@ -14,9 +13,6 @@ log = logger.logger
 
 
 class ProspectFileCrud:
-    def set_file_path(self, path):
-        self.file_path = path
-
     @classmethod
     def create_prospect_file(
         cls,
@@ -36,22 +32,19 @@ class ProspectFileCrud:
             .first()
         )
 
-        # if file already exists, use its path and don't save a new copy.
+        # if file already exists, it must have been processed previously
+        # return null so that caller knows the file cannot be processed.
         if existing_file_path is not None:
-            file_path = existing_file_path.__getitem__(0)
-            log.info(f"Existing file path: {file_path}")
+            return None
 
-        # if file does not exist, generate unique filename and save to disk
-        else:
-            file_path = f"{settings.CSV_FILES_PATH}/{uuid.uuid4().hex}.csv"
+        # generate unique filename and save file to disk
+        file_path = f"{settings.CSV_FILES_PATH}/{uuid.uuid4().hex}.csv"
+        # TODO loads everything into memory - improve!
+        with open(file_path, "wb+") as csv_file:
+            csv_file.write(contents)
+        log.info(f"New file created: {file_path}")
 
-            # TODO loads everything into memory - improve!
-            with open(file_path, "wb+") as csv_file:
-                csv_file.write(contents)
-
-            log.info(f"New file created: {file_path}")
-
-        # create entity and save to database
+        # create entity and persist to database
         prospect_file = ProspectFile(
             **meta_data,
             rows_total=0,
@@ -64,3 +57,7 @@ class ProspectFileCrud:
         db.refresh(prospect_file)
 
         return prospect_file
+
+    @classmethod
+    def get_prospect_file_by_id(cls, db: Session, file_id: int) -> ProspectFile:
+        return db.query(ProspectFile).filter_by(id=file_id).first()

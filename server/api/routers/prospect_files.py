@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Optional
+from unittest import result
 from fastapi import APIRouter, HTTPException, status, Depends, File, Form, UploadFile
 from sqlalchemy.orm.session import Session
 from api import schemas
@@ -33,11 +34,11 @@ async def import_prospects(
             detail="Unauthorized request. Client needs to login first.",
         )
 
-    # accept only text/plain
-    if file.content_type != "text/plain":
+    # accept only certain mime types: text/csv, text/plain, ...
+    if file.content_type not in settings.ALLOWED_MIME_TYPES:
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail="File must be a plain text file.",
+            detail=f"File must be a plain text or csv file. {file.content_type}",
         )
 
     # read the contents of uploaded file
@@ -50,27 +51,41 @@ async def import_prospects(
             detail=f"File too large (max allowed size = {settings.MAX_FILE_SIZE / (1024 * 1024)} MB).",
         )
 
-    # TODO schdule background task here...
-
     # meta data of uploaded file
     prospect_file_meta_data = {
         # required fields
         "file_name": file.filename,
         "email_index": email_index,
         # optional fields with default values
-        "first_name_index": (first_name_index, -1)[not first_name_index],
-        "last_name_index": (last_name_index, -1)[not last_name_index],
+        "first_name_index": (first_name_index, 0)[
+            not first_name_index or first_name_index < 1
+        ],
+        "last_name_index": (last_name_index, 0)[
+            not last_name_index or last_name_index < 1
+        ],
         "has_header": (has_header, False)[not has_header],
+        "force": (force, False)[not force],
         # derived fields
         "file_size": len(contents),
         "sha512_digest": hashlib.sha512(contents).hexdigest(),
         "uploaded_at": datetime.now(),
     }
 
-    # persist the uploaded file meta data into database
+    # persist the uploaded file and its meta data
     prospect_file = ProspectFileCrud.create_prospect_file(
         db, current_user.id, prospect_file_meta_data, contents
     )
 
-    # schedule importing task
-    simple_importer.process_file(prospect_file.id, force)
+    # if None, file must have been processed earlier and cannot be
+    # processed again. The most appropriate status code I found is 422.
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422
+    if prospect_file is None:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"The same exact file has already been processed previously.",
+        )
+
+    # submit the file id to the processing task
+    result = simple_importer.process_file(db, prospect_file.id)
+
+    return {"prospect": result}
