@@ -1,10 +1,12 @@
 import hashlib
+from traceback import print_stack
 import uuid
 import logging
 from fastapi import logger
+from sqlalchemy import update
 from sqlalchemy.orm.session import Session
 
-from api.models import ProspectFile
+from api.models import ProspectFile, prospect_file
 from api.core.config import settings
 from api import schemas
 
@@ -57,6 +59,11 @@ class ProspectFileCrud:
         db.refresh(prospect_file)
 
         return prospect_file
+
+    @classmethod
+    def update_prospect_file(cls, db: Session, data: ProspectFile) -> ProspectFile:
+        db.query(ProspectFile).filter(ProspectFile.id == data["id"]).update({**data})
+        db.commit()
 
     @classmethod
     def get_prospect_file_by_id(cls, db: Session, file_id: int) -> ProspectFile:
