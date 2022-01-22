@@ -1,12 +1,10 @@
 import hashlib
-from traceback import print_stack
 import uuid
 import logging
 from fastapi import logger
-from sqlalchemy import update
 from sqlalchemy.orm.session import Session
 
-from api.models import ProspectFile, prospect_file
+from api.models import ProspectFile
 from api.core.config import settings
 from api import schemas
 
@@ -25,8 +23,6 @@ class ProspectFileCrud:
     ) -> ProspectFile:
         """Save uploaded file to disk and its meta data to database"""
 
-        # save file to disk... this is a hack (i.e. not a CRUD operation)!
-
         # check if the same exact file exists in disk (using sha512 digest)
         existing_file_path = (
             db.query(ProspectFile.file_path)
@@ -44,7 +40,6 @@ class ProspectFileCrud:
         # TODO loads everything into memory - improve!
         with open(file_path, "wb+") as csv_file:
             csv_file.write(contents)
-        log.info(f"New file created: {file_path}")
 
         # create entity and persist to database
         prospect_file = ProspectFile(
@@ -62,9 +57,11 @@ class ProspectFileCrud:
 
     @classmethod
     def update_prospect_file(cls, db: Session, data: ProspectFile) -> ProspectFile:
+        """Update ProspectFile"""
         db.query(ProspectFile).filter(ProspectFile.id == data["id"]).update({**data})
         db.commit()
 
     @classmethod
     def get_prospect_file_by_id(cls, db: Session, file_id: int) -> ProspectFile:
+        """Get the ProspectFile with given id"""
         return db.query(ProspectFile).filter_by(id=file_id).first()

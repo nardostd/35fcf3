@@ -29,7 +29,7 @@ class ProspectCreate(BaseModel):
     email: EmailStr
     first_name: str
     last_name: str
-    
+
     @validator("email")
     def email_must_be_valid(cls, v):
         """The email field must be a valid email string"""
