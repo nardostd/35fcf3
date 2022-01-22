@@ -1,8 +1,9 @@
 from datetime import datetime
+import imp
 from typing import List
+from pydantic import ValidationError, validator
 
-from pydantic import BaseModel
-from pydantic.networks import EmailStr
+from pydantic import BaseModel, EmailStr
 
 
 class Prospect(BaseModel):
@@ -13,6 +14,12 @@ class Prospect(BaseModel):
     created_at: datetime
     updated_at: datetime
 
+    @validator("email")
+    def email_must_be_valid(cls, v):
+        """The email field must be a valid email string"""
+        EmailStr.validate(v)
+        return v
+
     class Config:
         orm_mode = True
 
@@ -22,6 +29,12 @@ class ProspectCreate(BaseModel):
     email: EmailStr
     first_name: str
     last_name: str
+    
+    @validator("email")
+    def email_must_be_valid(cls, v):
+        """The email field must be a valid email string"""
+        EmailStr.validate(v)
+        return v
 
     def __eq__(self, other):
         return (
