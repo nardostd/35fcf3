@@ -28,6 +28,7 @@ def submit(db: Session, file_id: int) -> dict:
     result = process_csv_file(
         {
             "file_path": prospect_file.file_path,
+            "has_header": prospect_file.has_header,
             "email_index": prospect_file.email_index,
             "first_name_index": prospect_file.first_name_index,
             "last_name_index": prospect_file.last_name_index,
