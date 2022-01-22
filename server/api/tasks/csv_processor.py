@@ -26,6 +26,10 @@ def process_csv_file(file_params: dict) -> dict:
     with open(file_params["file_path"], newline="") as csvfile:
 
         rows = csv.reader(csvfile, delimiter=",", quotechar='"')
+        
+        # if csv file has a header skip it
+        if file_params["has_header"] == True:
+            next(rows, None)
 
         for row in rows:
             # limit the number of rows to configured value of API
