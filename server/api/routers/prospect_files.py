@@ -7,7 +7,7 @@ from api.dependencies.auth import get_current_user, get_token
 from api.dependencies.db import get_db
 from api.core.config import settings
 from api.crud import ProspectFileCrud
-from api.tasks import simple_importer
+from api.tasks import importer
 import hashlib
 
 router = APIRouter(prefix="/api", tags=["prospects_files"])
@@ -86,8 +86,8 @@ async def import_prospects(
         )
 
     # submit the file id to the processing task
-    result = simple_importer.process_file(db, prospect_file.id)
+    result = importer.process_file(db, prospect_file.id)
 
     # TODO prepare appropriate response
 
-    return {"prospect": result}
+    return result
