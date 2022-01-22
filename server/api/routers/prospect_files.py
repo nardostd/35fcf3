@@ -59,14 +59,14 @@ async def import_prospects(
             "file_name": file.filename,
             "email_index": email_index,
             # optional fields with default values
-            "first_name_index": (first_name_index, 0)[
-                not first_name_index or first_name_index < 0
+            "first_name_index": (first_name_index, None)[
+                not first_name_index or first_name_index < 1
             ],
-            "last_name_index": (last_name_index, 0)[
-                not last_name_index or last_name_index < 0
+            "last_name_index": (last_name_index, None)[
+                not last_name_index or last_name_index < 1
             ],
-            "has_header": (has_header, False)[not has_header],
-            "force": (force, False)[not force],
+            "has_header": (has_header, None)[not has_header],
+            "force": (force, None)[not force],
             # derived fields
             "file_size": len(contents),
             "sha512_digest": hashlib.sha512(contents).hexdigest(),
