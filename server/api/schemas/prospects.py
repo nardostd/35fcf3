@@ -23,6 +23,12 @@ class Prospect(BaseModel):
     class Config:
         orm_mode = True
 
+    def __eq__(self, other):
+        return other is Prospect and self.email == other.email
+
+    def __hash__(self):
+        return hash((self.email, self.first_name, self.last_name))
+
 
 # made hashable by @nardos
 class ProspectCreate(BaseModel):
