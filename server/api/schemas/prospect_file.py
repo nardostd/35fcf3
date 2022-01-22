@@ -1,6 +1,13 @@
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 from pydantic import BaseModel
+
+
+class ProspectFileStatus(str, Enum):
+    scheduled = "scheduled"
+    in_progress = "in_progress"
+    done = "done"
 
 
 class ProspectFile(BaseModel):
@@ -18,6 +25,7 @@ class ProspectFile(BaseModel):
     rows_done: int
     uploaded_at: datetime
     user_id: int
+    status: ProspectFileStatus
 
     class Config:
         orm_mode = True
@@ -34,3 +42,4 @@ class ProspectFileCreate(BaseModel):
     has_header: bool
     force: bool
     uploaded_at: datetime
+    status: ProspectFileStatus

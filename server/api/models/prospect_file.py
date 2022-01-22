@@ -32,5 +32,7 @@ class ProspectFile(Base):
         "User", back_populates="prospect_files", foreign_keys=[user_id]
     )
 
+    status = Column(String, nullable=False)
+
     def __repr__(self):
         return f"{self.id} | {self.sha512_digest}"

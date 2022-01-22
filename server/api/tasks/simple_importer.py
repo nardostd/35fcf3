@@ -4,7 +4,7 @@ from fastapi import logger
 from typing import Set
 from pydantic import ValidationError
 from api.core.config import settings
-from api.schemas.prospect_file import ProspectFile
+from api.schemas.prospect_file import ProspectFile, ProspectFileStatus
 from api.crud import ProspectFileCrud
 from api.schemas.prospects import Prospect, ProspectCreate
 
@@ -26,7 +26,9 @@ def process_file(db, file_id: int) -> Set[ProspectCreate]:
 
     # read csv file from disk
     with open(prospect_file.file_path, newline="") as csvfile:
+
         rows = csv.reader(csvfile, delimiter=",", quotechar='"')
+
         for row in rows:
 
             # limit the number of rows to configured value of API
@@ -36,40 +38,44 @@ def process_file(db, file_id: int) -> Set[ProspectCreate]:
             # one more row is read
             total_number_of_lines += 1
 
-            # validate row
-            if is_valid_row(row, prospect_file):
-                try:
-                    # get email
-                    email = row[prospect_file.email_index - 1]
+            # skip invalid/malformed rows
+            if is_valid_row(row, prospect_file) == False:
+                continue
 
-                    # get first name or default to empty string
-                    if not prospect_file.first_name_index:
-                        first_name = ""
-                    else:
-                        first_name = row[prospect_file.first_name_index - 1]
+            try:
+                # get email
+                email = row[prospect_file.email_index - 1]
 
-                    # get last name or default to empty string
-                    if not prospect_file.last_name_index:
-                        last_name = ""
-                    else:
-                        last_name = row[prospect_file.last_name_index - 1]
+                # get first name or default to empty string
+                if not prospect_file.first_name_index:
+                    first_name = ""
+                else:
+                    first_name = row[prospect_file.first_name_index - 1]
 
-                    # create the prospect object
-                    prospects.add(
-                        ProspectCreate(
-                            email=email,
-                            first_name=first_name,
-                            last_name=last_name,
-                        )
+                # get last name or default to empty string
+                if not prospect_file.last_name_index:
+                    last_name = ""
+                else:
+                    last_name = row[prospect_file.last_name_index - 1]
+
+                # create the prospect object
+                prospects.add(
+                    ProspectCreate(
+                        email=email,
+                        first_name=first_name,
+                        last_name=last_name,
                     )
-                except ValidationError as e:
-                    log.error(e)
+                )
+
+            except ValidationError as e:
+                log.error(e)
 
     # TODO persist the discovered prospects
 
     # update the prospect file fields
     prospect_file.rows_total = total_number_of_lines
     prospect_file.rows_done = len(prospects)
+    prospect_file.status = ProspectFileStatus.done
 
     # persist the updates
     ProspectFileCrud.update_prospect_file(
@@ -78,6 +84,7 @@ def process_file(db, file_id: int) -> Set[ProspectCreate]:
             "id": prospect_file.id,
             "rows_total": prospect_file.rows_total,
             "rows_done": prospect_file.rows_done,
+            "status": prospect_file.status,
         },
     )
 

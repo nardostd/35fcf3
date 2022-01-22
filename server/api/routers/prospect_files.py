@@ -71,6 +71,7 @@ async def import_prospects(
             "file_size": len(contents),
             "sha512_digest": hashlib.sha512(contents).hexdigest(),
             "uploaded_at": datetime.now(),
+            "status": schemas.ProspectFileStatus.scheduled,
         },
         contents,
     )
