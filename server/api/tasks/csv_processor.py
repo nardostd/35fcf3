@@ -14,9 +14,9 @@ log = logger.logger
 
 
 def process_csv_file(file_params: dict) -> dict:
-    """Process prospect file identified by file_id"""
+    """Process CSV file with given parameters"""
 
-    # a set to hold the discovered prospects
+    # a collection to hold the discovered prospects
     prospects: set = set()
 
     # count the number of lines in the csv file
@@ -28,7 +28,6 @@ def process_csv_file(file_params: dict) -> dict:
         rows = csv.reader(csvfile, delimiter=",", quotechar='"')
 
         for row in rows:
-
             # limit the number of rows to configured value of API
             if total_number_of_lines > settings.MAX_NUMBER_OF_ROWS:
                 break
@@ -56,7 +55,7 @@ def process_csv_file(file_params: dict) -> dict:
                 else:
                     last_name = row[file_params["last_name_index"] - 1]
 
-                # create the prospect object
+                # create the prospect object and add to collection
                 prospects.add(
                     ProspectCreate(
                         email=email,
@@ -68,6 +67,7 @@ def process_csv_file(file_params: dict) -> dict:
             except ValidationError as e:
                 log.error(e)
 
+    # compose appropriate result and return
     return {
         "prospects": prospects,
         "lines_read": total_number_of_lines,

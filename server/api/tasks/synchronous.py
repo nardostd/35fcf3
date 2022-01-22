@@ -1,6 +1,5 @@
 from typing import Set
 from sqlalchemy.orm.session import Session
-from api.schemas.prospects import ProspectCreate
 from api.schemas.prospect_file import ProspectFileStatus
 from api.crud import ProspectFileCrud, ProspectCrud
 from api.schemas.prospects import Prospect
@@ -25,6 +24,7 @@ def submit(db: Session, file_id: int) -> dict:
         },
     )
 
+    # process the csv file
     result = process_csv_file(
         {
             "file_path": prospect_file.file_path,
@@ -33,13 +33,18 @@ def submit(db: Session, file_id: int) -> dict:
             "last_name_index": prospect_file.last_name_index,
         }
     )
+
+    # discovered prospects
     prospects = result["prospects"]
+
+    # total number of lines in the file
     lines_read = result["lines_read"]
 
+    # collection to hold persisted prospects
     persisted_prospects: Set[Prospect] = set()
 
+    # iterate over the discovered prospects and persist
     for prospect in prospects:
-
         persisted_prospects.add(
             ProspectCrud.create_prospect(
                 db,
@@ -52,7 +57,7 @@ def submit(db: Session, file_id: int) -> dict:
             )
         )
 
-    # update status to done
+    # update status (done), rows_total, and rows_done
     ProspectFileCrud.update_prospect_file(
         db,
         {
@@ -63,6 +68,7 @@ def submit(db: Session, file_id: int) -> dict:
         },
     )
 
+    # compose a result and return
     return {
         "id": file_id,
         "rows_total": lines_read,
