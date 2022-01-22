@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 log = logger.logger
 
 
-def process_file(db: Session, file_id: int) -> Set[Prospect]:
+def process_file(db: Session, file_id: int):
     """Process prospect file identified by file_id"""
 
     result = synchronous.submit(db, file_id)

@@ -85,7 +85,7 @@ async def import_prospects(
             detail=f"The same exact file has already been processed previously.",
         )
 
-    # submit the file id to the processing task
+    # submit the file id to the processing task (service layer)
     result = importer.process_file(db, prospect_file.id)
 
     # TODO prepare appropriate response
