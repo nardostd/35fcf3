@@ -1,84 +1,108 @@
 import csv
 import logging
-from array import array
+from fastapi import logger
 from typing import Set
-from sqlalchemy.orm.session import Session
-from fastapi import Depends, logger
-from pydantic import EmailStr, EmailError, ValidationError
-from api.dependencies.db import get_db
-from api.schemas.prospect_file import ProspectFile, ProspectFileCreate
+from pydantic import ValidationError
+from api.core.config import settings
+from api.schemas.prospect_file import ProspectFile
 from api.crud import ProspectFileCrud
-from api.schemas.prospects import Prospect
+from api.schemas.prospects import Prospect, ProspectCreate
 
 logging.basicConfig(level=logging.INFO)
 log = logger.logger
 
 
-def process_file(db, file_id: int) -> Set[Prospect]:
+def process_file(db, file_id: int) -> Set[ProspectCreate]:
     """Process prospect file identified by file_id"""
 
     # get file meta data from database
     prospect_file = ProspectFileCrud.get_prospect_file_by_id(db, file_id)
 
-    # TODO actual csv file processing
+    # a set to hold the discovered prospects
+    prospects: set = set()
+
+    # count the number of lines in the csv file
+    total_number_of_lines: int = 0
+
     # read csv file from disk
     with open(prospect_file.file_path, newline="") as csvfile:
-        prospects = csv.reader(csvfile, delimiter=",", quotechar='"')
-        for row in prospects:
-            # make assumptions about first name and last name indices if not provided
-            if prospect_file.first_name_index < 1 or prospect_file.last_name_index < 1:
-                name_index = get_name_indices(row, prospect_file)
-                prospect_file.first_name_index = name_index[0]
-                prospect_file.last_name_index = name_index[1]
+        rows = csv.reader(csvfile, delimiter=",", quotechar='"')
+        for row in rows:
+
+            # limit the number of rows to configured value of API
+            if total_number_of_lines > settings.MAX_NUMBER_OF_ROWS:
+                break
+
+            # one more row is read
+            total_number_of_lines += 1
 
             # validate row
-            if is_valid_prospect(row, prospect_file):
-                discovered_prospects: set = set()
-                discovered_prospects.add(
-                    Prospect(
-                        email=row[prospect_file.email_index - 1],
-                        first_name=row[prospect_file.first_name_index - 1],
-                        last_name=row[prospect_file.last_name_index - 1],
+            if is_valid_row(row, prospect_file):
+                try:
+                    # get email
+                    email = row[prospect_file.email_index - 1]
+
+                    # get first name or default to empty string
+                    if not prospect_file.first_name_index:
+                        first_name = ""
+                    else:
+                        first_name = row[prospect_file.first_name_index - 1]
+
+                    # get last name or default to empty string
+                    if not prospect_file.last_name_index:
+                        last_name = ""
+                    else:
+                        last_name = row[prospect_file.last_name_index - 1]
+
+                    # create the prospect object
+                    prospects.add(
+                        ProspectCreate(
+                            email=email,
+                            first_name=first_name,
+                            last_name=last_name,
+                        )
                     )
-                )
-                return discovered_prospects
-            return set()
+                except ValidationError as e:
+                    log.error(e)
+
+    # TODO persist the discovered prospects
+
+    # update the prospect file fields
+    prospect_file.rows_total = total_number_of_lines
+    prospect_file.rows_done = len(prospects)
+
+    # persist the updates
+    ProspectFileCrud.update_prospect_file(
+        db,
+        {
+            "id": prospect_file.id,
+            "rows_total": prospect_file.rows_total,
+            "rows_done": prospect_file.rows_done,
+        },
+    )
+
+    return prospects
 
 
-# TODO do this correctly!
-def get_name_indices(row: list, prospect_file: ProspectFile) -> array:
-    cols = len(row)
-    email_index = prospect_file.email_index
-    first_name_index = prospect_file.first_name_index
-    last_name_index = prospect_file.last_name_index
-    # TODO
-    return array(email_index, email_index)
-
-
-# validate a row in a CSV file
-# TODO add more validators
-def is_valid_prospect(row: list, prospect_file: ProspectFile) -> bool:
-    email_index = prospect_file.email_index
-    first_name_index = prospect_file.first_name_index
-    last_name_index = prospect_file.last_name_index
-    cols = len(row)
+# Invalid if the number of columns discovered in the row
+# is less than any of the indices provided in the request.
+def is_valid_row(row: list, prospect_file: ProspectFile) -> bool:
+    """Validate a row in a CSV file. Mainly check if indices are not out of bound."""
     try:
-        # index out of bound errors
         if (
-            email_index < 1
-            or email_index > cols
-            or first_name_index > cols
-            or last_name_index > cols
+            prospect_file.email_index < 1
+            or prospect_file.email_index > len(row)
+            or (
+                prospect_file.first_name_index is not None
+                and prospect_file.first_name_index > len(row)
+            )
+            or (
+                prospect_file.last_name_index is not None
+                and prospect_file.last_name_index > len(row)
+            )
         ):
             raise ValueError("index out of bound.")
-
-        # bad email
-        EmailStr.validate(row[email_index - 1])
-
-        # both first and last names are empty
-        if len(row[first_name_index - 1]) == 0 and len(row[last_name_index - 1]) == 0:
-            raise ValueError("at least one name is required.")
-
         return True
-    except (ValidationError, EmailError, ValueError):
+
+    except (ValueError):
         return False
