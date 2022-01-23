@@ -56,3 +56,26 @@ Black is included in the environment, and should be run before committing files.
 `cd server`
 
 `black .`
+
+## Environment Variables Required in .env file
+
+ENVIRONMENT VARIABLE | DESCRIPTION
+-------------------- | ------
+DATABASE_URL | The database URL
+CSV_FILES_PATH | The path to the CSV file store on server disk
+
+## API Configuration Parameters
+
+CONFIGURATION PARAMETER | DESCRIPTION | VALUES
+----------------------- | ----------- | ------
+MAX_FILE_SIZE | The maximum file size allowed | 200 MB
+MAX_NUMBER_OF_ROWS | The maximum number of rows that will be processed | 1000000
+CSV_FILES_PATH | The file store in server disk | config gets it from .env file
+ALLOWED_MIME_TYPES | The file types allowed for upload |  Set in config file: text/csv, text/plain
+
+## Endpoints Implemented
+
+METHOD | ENDPOINT | SUCCESS CODE
+------ | -------- | ------------
+POST | `/api/prospect_files/import` | 202 (ACCEPTED)
+GET | `/api/prospect_files/:id/progress` | 200 (OK)
