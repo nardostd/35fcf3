@@ -1,9 +1,8 @@
-from typing import Set
 from sqlalchemy.orm.session import Session
 from api.schemas.prospect_file import ProspectFileStatus
-from api.crud import ProspectFileCrud, ProspectCrud
-from api.schemas.prospects import Prospect
+from api.crud import ProspectFileCrud
 from .csv_processor import process_csv_file
+from .persistor import persist
 
 
 def submit(db: Session, file_id: int) -> dict:
@@ -11,9 +10,6 @@ def submit(db: Session, file_id: int) -> dict:
 
     # get file meta data from database
     prospect_file = ProspectFileCrud.get_prospect_file_by_id(db, file_id)
-
-    # get user id
-    user_id = prospect_file.user_id
 
     # update status to in_progress
     ProspectFileCrud.update_prospect_file(
@@ -28,10 +24,10 @@ def submit(db: Session, file_id: int) -> dict:
     result = process_csv_file(
         {
             "file_path": prospect_file.file_path,
-            "has_header": prospect_file.has_header,
             "email_index": prospect_file.email_index,
             "first_name_index": prospect_file.first_name_index,
             "last_name_index": prospect_file.last_name_index,
+            "has_header": prospect_file.has_header,
         }
     )
 
@@ -41,22 +37,15 @@ def submit(db: Session, file_id: int) -> dict:
     # total number of lines in the file
     lines_read = result["lines_read"]
 
-    # collection to hold persisted prospects
-    persisted_prospects: Set[Prospect] = set()
-
-    # iterate over the discovered prospects and persist
-    for prospect in prospects:
-        persisted_prospects.add(
-            ProspectCrud.create_prospect(
-                db,
-                user_id,
-                {
-                    "email": prospect.email,
-                    "first_name": prospect.first_name,
-                    "last_name": prospect.last_name,
-                },
-            )
-        )
+    # persist the prospects
+    persisted_prospects = persist(
+        db,
+        prospects,
+        {
+            "force": prospect_file.force,
+            "user_id": prospect_file.user_id,
+        }
+    )
 
     # update status (done), rows_total, and rows_done
     ProspectFileCrud.update_prospect_file(

@@ -16,6 +16,15 @@ log = logger.logger
 def process_csv_file(file_params: dict) -> dict:
     """Process CSV file with given parameters"""
 
+    """
+    This utility method expects the following file parameters:
+        "file_path" - required
+        "email_index" - required
+        "first_name_index" - optional
+        "last_name_index" - optional
+        "has_header" - optional
+    """
+
     # a collection to hold the discovered prospects
     prospects: set = set()
 
@@ -26,7 +35,7 @@ def process_csv_file(file_params: dict) -> dict:
     with open(file_params["file_path"], newline="") as csvfile:
 
         rows = csv.reader(csvfile, delimiter=",", quotechar='"')
-        
+
         # if csv file has a header skip it
         if file_params["has_header"] == True:
             next(rows, None)
