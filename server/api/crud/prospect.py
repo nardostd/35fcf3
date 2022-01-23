@@ -1,8 +1,11 @@
+from tokenize import String
 from typing import List, Set, Union
+from pydantic import EmailStr
 from sqlalchemy.orm.session import Session
 from api import schemas
 from api.models import Prospect
 from api.core.constants import DEFAULT_PAGE_SIZE, DEFAULT_PAGE, MIN_PAGE, MAX_PAGE_SIZE
+from api.schemas.prospects import ProspectCreate
 
 
 class ProspectCrud:
@@ -54,3 +57,14 @@ class ProspectCrud:
             .all()
         )
         return {row.id for row in res}
+
+    @classmethod
+    def update_prospect(cls, db: Session, data: schemas.ProspectCreate) -> Prospect:
+        """Update existing Prospect"""
+        db.query(Prospect).filter(Prospect.email == data["email"]).update({**data})
+        db.commit()
+
+    @classmethod
+    def get_prospect_by_email(cls, db: Session, email: EmailStr) -> Prospect:
+        """Get Prospect by email"""
+        return db.query(Prospect).filter_by(email=email).first()
