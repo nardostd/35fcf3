@@ -5,8 +5,12 @@ from .csv_processor import process_csv_file
 from .persistor import persist
 
 
-def submit(db: Session, file_id: int) -> dict:
-    """Process uploaded file synchronously"""
+def execute(db: Session, file_id: int) -> dict:
+    """
+    Process uploaded file.
+    This worker method can be used both synchronously and asynchronously.
+    The returned result is useful for the synchronous case.
+    """
 
     # get file meta data from database
     prospect_file = ProspectFileCrud.get_prospect_file_by_id(db, file_id)

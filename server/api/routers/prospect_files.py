@@ -1,13 +1,13 @@
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, HTTPException, status, Depends, File, Form, UploadFile
+from fastapi import APIRouter, HTTPException, status, Depends, File, Form, UploadFile, BackgroundTasks
 from sqlalchemy.orm.session import Session
 from api import schemas
 from api.dependencies.auth import get_current_user, get_token
 from api.dependencies.db import get_db
 from api.core.config import settings
-from api.crud import ProspectFileCrud, prospect_file
-from api.services import importer, tracker
+from api.crud import ProspectFileCrud
+from api.services import tracker, worker
 import hashlib
 
 router = APIRouter(prefix="/api", tags=["prospects_files"])
@@ -15,6 +15,7 @@ router = APIRouter(prefix="/api", tags=["prospects_files"])
 
 @router.post("/prospect_files/import", status_code=status.HTTP_202_ACCEPTED)
 async def import_prospects(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     email_index: int = Form(...),
     first_name_index: Optional[int] = Form(None),
@@ -85,10 +86,8 @@ async def import_prospects(
             detail=f"The same exact file has already been processed previously.",
         )
 
-    # submit the file id to the processing task (service layer)
-    result = importer.process_file(db, prospect_file.id)
-
-    return result
+    # submit the file id for asynchronous processing
+    background_tasks.add_task(worker.execute, db, prospect_file.id)
 
 
 @router.get("/prospect_files/{id}/progress", status_code=status.HTTP_200_OK)

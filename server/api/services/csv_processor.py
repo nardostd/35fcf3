@@ -2,10 +2,7 @@ import csv
 import logging
 from fastapi import logger
 from pydantic import ValidationError
-from sqlalchemy.orm.session import Session
 from api.core.config import settings
-from api.schemas.prospect_file import ProspectFile, ProspectFileCreate
-from api.crud import ProspectFileCrud
 from api.schemas.prospects import ProspectCreate
 
 logging.basicConfig(level=logging.INFO)
