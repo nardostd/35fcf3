@@ -1,12 +1,9 @@
-import email
-from tokenize import String
 from typing import List, Set, Union
 from pydantic import EmailStr
 from sqlalchemy.orm.session import Session
 from api import schemas
 from api.models import Prospect
 from api.core.constants import DEFAULT_PAGE_SIZE, DEFAULT_PAGE, MIN_PAGE, MAX_PAGE_SIZE
-from api.schemas.prospects import ProspectCreate
 
 
 class ProspectCrud:

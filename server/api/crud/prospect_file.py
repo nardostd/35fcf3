@@ -1,15 +1,11 @@
 import hashlib
 import uuid
-import logging
-from fastapi import logger
 from sqlalchemy.orm.session import Session
 
 from api.models import ProspectFile, prospect_file
 from api.core.config import settings
+from api.core.logger import log
 from api import schemas
-
-logging.basicConfig(level=logging.INFO)
-log = logger.logger
 
 
 class ProspectFileCrud:
@@ -48,6 +44,9 @@ class ProspectFileCrud:
                 and existing_first_name_index == meta_data["first_name_index"]
                 and existing_last_name_index == meta_data["last_name_index"]
             ):
+                log.info(
+                    "Request will not be processed as it is exactly the same as a previous request."
+                )
                 return None
 
             # if at least one of the index parameters is different, process request

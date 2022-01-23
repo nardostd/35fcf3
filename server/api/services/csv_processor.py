@@ -1,18 +1,14 @@
 import csv
-import logging
-from fastapi import logger
 from pydantic import ValidationError
 from api.core.config import settings
 from api.schemas.prospects import ProspectCreate
-
-logging.basicConfig(level=logging.INFO)
-log = logger.logger
+from api.core.logger import log
 
 
 def process_csv_file(file_params: dict) -> dict:
-    """Process CSV file with given parameters"""
-
     """
+    Process CSV file with given parameters
+
     This utility method expects the following file parameters:
         "file_path" - required
         "email_index" - required
@@ -74,7 +70,7 @@ def process_csv_file(file_params: dict) -> dict:
                 )
 
             except ValidationError as e:
-                log.error(e)
+                log.error(e.errors()[0]["msg"])
 
     # compose appropriate result and return
     return {

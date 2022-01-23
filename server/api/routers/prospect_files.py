@@ -19,6 +19,7 @@ from api.dependencies.db import get_db
 from api.core.config import settings
 from api.crud import ProspectFileCrud
 from api.services import tracker, worker
+from api.core.logger import log
 
 router = APIRouter(prefix="/api", tags=["prospects_files"])
 
@@ -39,6 +40,7 @@ async def import_prospects(
 
     # request should include bearer token (clients needs to login first)
     if not current_user:
+        log.info("HTTP_401_UNAUTHORIZED")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Unauthorized request. Client needs to login first.",
@@ -46,6 +48,7 @@ async def import_prospects(
 
     # accept only certain mime types: text/csv, text/plain, ...
     if file.content_type not in settings.ALLOWED_MIME_TYPES:
+        log.info("HTTP_415_UNSUPPORTED_MEDIA_TYPE")
         raise HTTPException(
             status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
             detail=f"File must be a plain text or csv file. {file.content_type}",
@@ -56,6 +59,7 @@ async def import_prospects(
 
     # Uploaded file size should not exceed max value
     if len(contents) > settings.MAX_FILE_SIZE:
+        log.info("HTTP_413_REQUEST_ENTITY_TOO_LARGE")
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail=f"File too large (max allowed size = {settings.MAX_FILE_SIZE / (1024 * 1024)} MB).",
@@ -95,6 +99,7 @@ async def import_prospects(
     # processed again. The most appropriate status code I found is 422.
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/422
     if prospect_file is None:
+        log.info("HTTP_422_UNPROCESSABLE_ENTITY")
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"The same exact file has already been processed previously.",
@@ -115,6 +120,7 @@ def track_progress(request_id: str, db: Session = Depends(get_db)):
     result = tracker.track_progress(request_id, db)
 
     if result is None:
+        log.info("HTTP_404_NOT_FOUND")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=f"Resource file not found."
         )

@@ -62,7 +62,7 @@ def execute(db: Session, file_id: int) -> dict:
         },
     )
 
-    # compose a result. include HAL links (HATEOS)
+    # compose a response for synchronous option. Include HAL links (HATEOS)
     return {
         "id": file_id,
         "total": lines_read,

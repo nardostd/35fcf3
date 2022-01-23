@@ -1,7 +1,6 @@
 from datetime import datetime
-import imp
 from typing import List
-from pydantic import ValidationError, validator
+from pydantic import validator
 
 from pydantic import BaseModel, EmailStr
 
