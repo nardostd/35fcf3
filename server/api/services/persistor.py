@@ -30,6 +30,7 @@ def persist(db: Session, prospects: set, params: dict) -> Set[Prospect]:
                 persisted_prospects.add(
                     ProspectCrud.update_prospect(
                         db,
+                        params["user_id"],
                         data,
                     )
                 )
