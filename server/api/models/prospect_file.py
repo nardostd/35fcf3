@@ -33,6 +33,7 @@ class ProspectFile(Base):
     )
 
     status = Column(String, nullable=False)
+    request_id = Column(String, nullable=False, unique=True)
 
     def __repr__(self):
         return f"{self.id} | {self.sha512_digest}"

@@ -26,6 +26,7 @@ class ProspectFile(BaseModel):
     uploaded_at: datetime
     user_id: int
     status: ProspectFileStatus
+    request_id: str
 
     class Config:
         orm_mode = True
