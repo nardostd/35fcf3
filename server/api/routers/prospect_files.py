@@ -6,8 +6,8 @@ from api import schemas
 from api.dependencies.auth import get_current_user, get_token
 from api.dependencies.db import get_db
 from api.core.config import settings
-from api.crud import ProspectFileCrud
-from api.tasks import importer
+from api.crud import ProspectFileCrud, prospect_file
+from api.services import importer, tracker
 import hashlib
 
 router = APIRouter(prefix="/api", tags=["prospects_files"])
@@ -88,6 +88,18 @@ async def import_prospects(
     # submit the file id to the processing task (service layer)
     result = importer.process_file(db, prospect_file.id)
 
-    # TODO prepare appropriate response
+    return result
+
+
+@router.get("/prospect_files/{id}/progress", status_code=status.HTTP_200_OK)
+def track_progress(id: int, db: Session = Depends(get_db)):
+    
+    result = tracker.track_progress(id, db)
+
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Resource file not found."
+        )
 
     return result
