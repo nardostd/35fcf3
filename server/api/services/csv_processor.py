@@ -21,7 +21,7 @@ def process_csv_file(file_params: dict) -> dict:
         "email_index" - required
         "first_name_index" - optional
         "last_name_index" - optional
-        "has_header" - optional
+        "has_headers" - optional
     """
 
     # a collection to hold the discovered prospects
@@ -36,7 +36,7 @@ def process_csv_file(file_params: dict) -> dict:
         rows = csv.reader(csvfile, delimiter=",", quotechar='"')
 
         # if csv file has a header skip it
-        if file_params["has_header"] == True:
+        if file_params["has_headers"] == True:
             next(rows, None)
 
         for row in rows:

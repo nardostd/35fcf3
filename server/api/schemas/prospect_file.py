@@ -19,7 +19,7 @@ class ProspectFile(BaseModel):
     email_index: int
     first_name_index: Optional[int]
     last_name_index: Optional[int]
-    has_header: Optional[bool]
+    has_headers: Optional[bool]
     force: Optional[bool]
     rows_total: int
     rows_done: int
@@ -39,7 +39,7 @@ class ProspectFileCreate(BaseModel):
     email_index: int
     first_name_index: Optional[int]
     last_name_index: Optional[int]
-    has_header: bool
+    has_headers: bool
     force: bool
     uploaded_at: datetime
     status: ProspectFileStatus

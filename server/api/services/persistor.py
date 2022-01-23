@@ -3,14 +3,15 @@ from sqlalchemy.orm.session import Session
 from api.schemas.prospects import Prospect
 from api.crud.prospect import ProspectCrud
 
+
 def persist(db: Session, prospects: set, params: dict) -> Set[Prospect]:
     """
-    Persists a collection of Prospects. 
+    Persists a collection of Prospects.
     Updates if Prospect already exists and the 'force' flag is set.
     """
-    
+
     persisted_prospects: Set[Prospect] = set()
-    
+
     # iterate over the discovered prospects and persist
     for prospect in prospects:
 
@@ -21,9 +22,7 @@ def persist(db: Session, prospects: set, params: dict) -> Set[Prospect]:
         }
 
         # check if prospect with same email exists
-        existing_prospect = ProspectCrud.get_prospect_by_email(
-            db, prospect.email
-        )
+        existing_prospect = ProspectCrud.get_prospect_by_email(db, prospect.email)
 
         # if there is a prospect with same email and the force flag is true
         if existing_prospect is not None:
@@ -42,5 +41,5 @@ def persist(db: Session, prospects: set, params: dict) -> Set[Prospect]:
                     data,
                 )
             )
-    
+
     return persisted_prospects

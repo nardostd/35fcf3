@@ -19,7 +19,7 @@ class ProspectFile(Base):
     email_index = Column(Integer, nullable=False)
     first_name_index = Column(Integer, nullable=True)
     last_name_index = Column(Integer, nullable=True)
-    has_header = Column(Boolean, nullable=True)
+    has_headers = Column(Boolean, nullable=True)
     force = Column(Boolean, nullable=True)
     rows_total = Column(Integer, nullable=False)
     rows_done = Column(Integer, nullable=False)

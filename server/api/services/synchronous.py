@@ -27,7 +27,7 @@ def submit(db: Session, file_id: int) -> dict:
             "email_index": prospect_file.email_index,
             "first_name_index": prospect_file.first_name_index,
             "last_name_index": prospect_file.last_name_index,
-            "has_header": prospect_file.has_header,
+            "has_headers": prospect_file.has_headers,
         }
     )
 
@@ -44,7 +44,7 @@ def submit(db: Session, file_id: int) -> dict:
         {
             "force": prospect_file.force,
             "user_id": prospect_file.user_id,
-        }
+        },
     )
 
     # update status (done), rows_total, and rows_done
@@ -66,5 +66,5 @@ def submit(db: Session, file_id: int) -> dict:
         "status": ProspectFileStatus.done,
         "_links": {
             "self": f"/api/prospect_files/{file_id}/progress",
-        }
+        },
     }

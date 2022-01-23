@@ -20,7 +20,7 @@ async def import_prospects(
     first_name_index: Optional[int] = Form(None),
     last_name_index: Optional[int] = Form(None),
     force: Optional[bool] = Form(None),
-    has_header: Optional[bool] = Form(None),
+    has_headers: Optional[bool] = Form(None),
     current_user: schemas.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -65,7 +65,7 @@ async def import_prospects(
             "last_name_index": (last_name_index, None)[
                 not last_name_index or last_name_index < 1
             ],
-            "has_header": (has_header, None)[not has_header],
+            "has_headers": (has_headers, None)[not has_headers],
             "force": (force, None)[not force],
             # derived fields
             "file_size": len(contents),
@@ -93,13 +93,12 @@ async def import_prospects(
 
 @router.get("/prospect_files/{id}/progress", status_code=status.HTTP_200_OK)
 def track_progress(id: int, db: Session = Depends(get_db)):
-    
+
     result = tracker.track_progress(id, db)
 
     if result is None:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Resource file not found."
+            status_code=status.HTTP_404_NOT_FOUND, detail=f"Resource file not found."
         )
 
     return result
