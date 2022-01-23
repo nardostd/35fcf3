@@ -79,3 +79,23 @@ METHOD | ENDPOINT | SUCCESS CODE
 ------ | -------- | ------------
 POST | `/api/prospect_files/import` | 202 (ACCEPTED)
 GET | `/api/prospect_files/:id/progress` | 200 (OK)
+
+## Sample Response Bodies
+
+```POST /api/prospect_files/import```
+```javascript
+{
+    "_links": {
+        "self": "/api/prospect_files/8927e362fef2427c81400da85ef9e89e/progress"
+    },
+    "request_id": "8927e362fef2427c81400da85ef9e89e"
+}
+```
+
+```GET /api/prospect_files/8927e362fef2427c81400da85ef9e89e/progress```
+```javascript
+{
+    "done": 943,
+    "total": 1000
+}
+```
