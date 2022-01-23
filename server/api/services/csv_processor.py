@@ -1,7 +1,6 @@
 import csv
 import logging
 from fastapi import logger
-from typing import Set
 from pydantic import ValidationError
 from sqlalchemy.orm.session import Session
 from api.core.config import settings

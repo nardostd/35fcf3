@@ -4,7 +4,10 @@ from api.schemas.prospects import Prospect
 from api.crud.prospect import ProspectCrud
 
 def persist(db: Session, prospects: set, params: dict) -> Set[Prospect]:
-    """Persists a collection of Prospects. Updates if Prospect already exists and 'force' is set"""
+    """
+    Persists a collection of Prospects. 
+    Updates if Prospect already exists and the 'force' flag is set.
+    """
     
     persisted_prospects: Set[Prospect] = set()
     
