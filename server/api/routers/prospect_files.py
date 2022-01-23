@@ -1,9 +1,18 @@
 from datetime import datetime
 from typing import Optional
-from fastapi import APIRouter, HTTPException, status, Depends, File, Form, UploadFile, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    HTTPException,
+    status,
+    Depends,
+    File,
+    Form,
+    UploadFile,
+    BackgroundTasks,
+)
 from sqlalchemy.orm.session import Session
 from api import schemas
-from api.dependencies.auth import get_current_user, get_token
+from api.dependencies.auth import get_current_user
 from api.dependencies.db import get_db
 from api.core.config import settings
 from api.crud import ProspectFileCrud
