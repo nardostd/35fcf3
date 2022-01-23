@@ -60,7 +60,10 @@ class ProspectCrud:
 
     @classmethod
     def update_prospect(cls, db: Session, data: schemas.ProspectCreate) -> Prospect:
-        """Update existing Prospect"""
+        """
+        Update existing Prospect.
+        TODO Currently does not return a refreshed value.
+        """
         db.query(Prospect).filter(Prospect.email == data["email"]).update({**data})
         db.commit()
 

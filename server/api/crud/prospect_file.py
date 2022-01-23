@@ -57,7 +57,10 @@ class ProspectFileCrud:
 
     @classmethod
     def update_prospect_file(cls, db: Session, data: ProspectFile) -> ProspectFile:
-        """Update ProspectFile"""
+        """
+        Update ProspectFile
+        TODO Currently does not return a refreshed value.
+        """
         db.query(ProspectFile).filter(ProspectFile.id == data["id"]).update({**data})
         db.commit()
 
