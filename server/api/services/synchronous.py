@@ -58,10 +58,13 @@ def submit(db: Session, file_id: int) -> dict:
         },
     )
 
-    # compose a result and return
+    # compose a result. include HAL links (HATEOS)
     return {
         "id": file_id,
         "rows_total": lines_read,
         "rows_done": len(persisted_prospects),
         "status": ProspectFileStatus.done,
+        "_links": {
+            "self": f"/api/prospect_files/{file_id}/progress",
+        }
     }
