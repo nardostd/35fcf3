@@ -24,22 +24,34 @@ class ProspectFileCrud:
         """Save uploaded file to disk and its meta data to database"""
 
         # check if the same exact file exists in disk (using sha512 digest)
-        existing_file_path = (
-            db.query(ProspectFile.file_path)
+        existing_file = (
+            db.query(ProspectFile)
             .filter_by(sha512_digest=hashlib.sha512(contents).hexdigest())
             .first()
         )
 
-        # if file already exists, it must have been processed previously
-        # return null so that caller knows the file cannot be processed.
-        if existing_file_path is not None:
-            return None
+        # if file does not exist, generate file_path and save it to disk
+        if existing_file is None:
+            # generate unique filename and save file to disk
+            file_path = f"{settings.CSV_FILES_PATH}/{uuid.uuid4().hex}.csv"
+            # TODO loads everything into memory - improve!
+            with open(file_path, "wb+") as csv_file:
+                csv_file.write(contents)
+        else:
+            # if file already exists, check if the incoming index parameters are different
+            existing_email_index = existing_file.email_index
+            existing_first_name_index = existing_file.first_name_index
+            existing_last_name_index = existing_file.last_name_index
+            # if index parameters are exactly the same, do not process request
+            if (
+                existing_email_index == meta_data["email_index"]
+                and existing_first_name_index == meta_data["first_name_index"]
+                and existing_last_name_index == meta_data["last_name_index"]
+            ):
+                return None
 
-        # generate unique filename and save file to disk
-        file_path = f"{settings.CSV_FILES_PATH}/{uuid.uuid4().hex}.csv"
-        # TODO loads everything into memory - improve!
-        with open(file_path, "wb+") as csv_file:
-            csv_file.write(contents)
+            # if at least one of the index parameters is different, process request
+            file_path = existing_file.file_path
 
         # create entity and persist to database
         prospect_file = ProspectFile(
@@ -57,11 +69,7 @@ class ProspectFileCrud:
 
     @classmethod
     def update_prospect_file(cls, db: Session, data: ProspectFile) -> ProspectFile:
-        """
-        Update ProspectFile
-        TODO db.refresh(prospect_file) throws and exception:
-        sqlalchemy.exc.InvalidRequestError: Instance '<ProspectFile at 0x7fbcfe334e48>' is not persistent within this Session
-        """
+        """Update ProspectFile"""
         prospect_file = ProspectFile(**data)
         db.query(ProspectFile).filter(ProspectFile.id == data["id"]).update({**data})
         db.commit()

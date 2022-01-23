@@ -63,11 +63,7 @@ class ProspectCrud:
     def update_prospect(
         cls, db: Session, user_id: int, data: schemas.ProspectCreate
     ) -> Prospect:
-        """
-        Update existing Prospect.
-        TODO db.refresh(prospect) throws an exception:
-        sqlalchemy.exc.InvalidRequestError: Instance '<Prospect at 0x7f9c52540e48>' is not persistent within this Session
-        """
+        """Update existing Prospect"""
         prospect = Prospect(**data, user_id=user_id)
         db.query(Prospect).filter(Prospect.email == data["email"]).update({**data})
         db.commit()

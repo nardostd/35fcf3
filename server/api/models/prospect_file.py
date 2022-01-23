@@ -1,3 +1,4 @@
+from enum import unique
 from xmlrpc.client import Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.schema import Column, ForeignKey
@@ -12,9 +13,9 @@ class ProspectFile(Base):
     __tablename__ = "prospect_files"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True, unique=True)
-    file_name = Column(String, index=True, nullable=False)
+    file_name = Column(String, index=False, nullable=False, unique=False)
     file_size = Column(BigInteger, nullable=False)
-    sha512_digest = Column(String, index=True, unique=False, nullable=False)
+    sha512_digest = Column(String, index=False, unique=False, nullable=False)
     file_path = Column(String, nullable=False)
     email_index = Column(Integer, nullable=False)
     first_name_index = Column(Integer, nullable=True)
