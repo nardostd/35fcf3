@@ -1,3 +1,5 @@
+import hashlib
+import uuid
 from datetime import datetime
 from typing import Optional
 from fastapi import (
@@ -17,7 +19,6 @@ from api.dependencies.db import get_db
 from api.core.config import settings
 from api.crud import ProspectFileCrud
 from api.services import tracker, worker
-import hashlib
 
 router = APIRouter(prefix="/api", tags=["prospects_files"])
 
@@ -60,6 +61,9 @@ async def import_prospects(
             detail=f"File too large (max allowed size = {settings.MAX_FILE_SIZE / (1024 * 1024)} MB).",
         )
 
+    # generate a unique request id for tracking progress
+    unique_request_id = uuid.uuid4().hex
+
     # persist the uploaded file and its meta data
     prospect_file = ProspectFileCrud.create_prospect_file(
         db,
@@ -82,6 +86,7 @@ async def import_prospects(
             "sha512_digest": hashlib.sha512(contents).hexdigest(),
             "uploaded_at": datetime.now(),
             "status": schemas.ProspectFileStatus.scheduled,
+            "request_id": unique_request_id,
         },
         contents,
     )
@@ -98,11 +103,16 @@ async def import_prospects(
     # submit the file id for asynchronous processing
     background_tasks.add_task(worker.execute, db, prospect_file.id)
 
+    return {
+        "request_id": unique_request_id,
+        "_links": {"self": f"/api/prospect_files/{unique_request_id}/progress"},
+    }
 
-@router.get("/prospect_files/{id}/progress", status_code=status.HTTP_200_OK)
-def track_progress(id: int, db: Session = Depends(get_db)):
 
-    result = tracker.track_progress(id, db)
+@router.get("/prospect_files/{request_id}/progress", status_code=status.HTTP_200_OK)
+def track_progress(request_id: str, db: Session = Depends(get_db)):
+
+    result = tracker.track_progress(request_id, db)
 
     if result is None:
         raise HTTPException(
