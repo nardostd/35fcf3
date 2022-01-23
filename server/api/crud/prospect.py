@@ -1,3 +1,4 @@
+import email
 from tokenize import String
 from typing import List, Set, Union
 from pydantic import EmailStr
@@ -59,13 +60,18 @@ class ProspectCrud:
         return {row.id for row in res}
 
     @classmethod
-    def update_prospect(cls, db: Session, data: schemas.ProspectCreate) -> Prospect:
+    def update_prospect(
+        cls, db: Session, user_id: int, data: schemas.ProspectCreate
+    ) -> Prospect:
         """
         Update existing Prospect.
-        TODO Currently does not return a refreshed value.
+        TODO db.refresh(prospect) throws an exception:
+        sqlalchemy.exc.InvalidRequestError: Instance '<Prospect at 0x7f9c52540e48>' is not persistent within this Session
         """
+        prospect = Prospect(**data, user_id=user_id)
         db.query(Prospect).filter(Prospect.email == data["email"]).update({**data})
         db.commit()
+        return prospect
 
     @classmethod
     def get_prospect_by_email(cls, db: Session, email: EmailStr) -> Prospect:

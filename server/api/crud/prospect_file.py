@@ -4,7 +4,7 @@ import logging
 from fastapi import logger
 from sqlalchemy.orm.session import Session
 
-from api.models import ProspectFile
+from api.models import ProspectFile, prospect_file
 from api.core.config import settings
 from api import schemas
 
@@ -59,10 +59,13 @@ class ProspectFileCrud:
     def update_prospect_file(cls, db: Session, data: ProspectFile) -> ProspectFile:
         """
         Update ProspectFile
-        TODO Currently does not return a refreshed value.
+        TODO db.refresh(prospect_file) throws and exception:
+        sqlalchemy.exc.InvalidRequestError: Instance '<ProspectFile at 0x7fbcfe334e48>' is not persistent within this Session
         """
+        prospect_file = ProspectFile(**data)
         db.query(ProspectFile).filter(ProspectFile.id == data["id"]).update({**data})
         db.commit()
+        return prospect_file
 
     @classmethod
     def get_prospect_file_by_id(cls, db: Session, file_id: int) -> ProspectFile:
