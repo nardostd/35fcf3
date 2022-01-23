@@ -71,3 +71,8 @@ class ProspectFileCrud:
     def get_prospect_file_by_id(cls, db: Session, file_id: int) -> ProspectFile:
         """Get the ProspectFile with given id"""
         return db.query(ProspectFile).filter_by(id=file_id).first()
+
+    @classmethod
+    def get_prospect_file_by_request_id(cls, db:Session, request_id: str) -> ProspectFile:
+        """Get the ProspectFile with given request id"""
+        return db.query(ProspectFile).filter_by(request_id=request_id).first()
