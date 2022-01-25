@@ -24,7 +24,9 @@ def process_csv_file(file_params: dict) -> dict:
     total_number_of_lines: int = 0
 
     # read csv file from disk
-    with open(file_params["file_path"], newline="") as csvfile:
+    with open(
+        file_params["file_path"], newline="", buffering=settings.BUFFER_SIZE
+    ) as csvfile:
 
         rows = csv.reader(csvfile, delimiter=",", quotechar='"')
 

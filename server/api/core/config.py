@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     # Allowed mime-types
     ALLOWED_MIME_TYPES: set = {"text/csv", "text/plain"}
 
+    # Buffer size
+    BUFFER_SIZE = 1024
+
     class Config:
         case_sensitive = True
 
