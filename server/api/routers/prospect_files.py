@@ -1,7 +1,7 @@
 import hashlib
 import uuid
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Union
 from fastapi import (
     APIRouter,
     HTTPException,
@@ -24,7 +24,11 @@ from api.core.logger import log
 router = APIRouter(prefix="/api", tags=["prospects_files"])
 
 
-@router.post("/prospect_files/import", status_code=status.HTTP_202_ACCEPTED)
+@router.post(
+    "/prospect_files/import",
+    response_model=schemas.ProspectFileCreatedResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
 async def import_prospects(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
@@ -110,11 +114,17 @@ async def import_prospects(
 
     return {
         "request_id": unique_request_id,
-        "_links": {"self": f"/api/prospect_files/{unique_request_id}/progress"},
+        "links": {"file_status": f"/api/prospect_files/{unique_request_id}/progress"},
     }
 
 
-@router.get("/prospect_files/{request_id}/progress", status_code=status.HTTP_200_OK)
+@router.get(
+    "/prospect_files/{request_id}/progress",
+    response_model=Union[
+        schemas.ProspectFileStatusResponse, schemas.ProspectFileDoneResponse
+    ],
+    status_code=status.HTTP_200_OK,
+)
 def track_progress(request_id: str, db: Session = Depends(get_db)):
 
     result = tracker.track_progress(request_id, db)

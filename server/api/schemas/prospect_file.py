@@ -1,6 +1,7 @@
 from datetime import datetime
 from enum import Enum
 from typing import Optional
+from fastapi import status
 from pydantic import BaseModel
 
 
@@ -44,3 +45,22 @@ class ProspectFileCreate(BaseModel):
     force: bool
     uploaded_at: datetime
     status: ProspectFileStatus
+
+
+# response models for endpoints
+class HateosLink(BaseModel):
+    file_status: str
+
+
+class ProspectFileCreatedResponse(BaseModel):
+    request_id: str
+    links: HateosLink
+
+
+class ProspectFileDoneResponse(BaseModel):
+    total: int
+    done: int
+
+
+class ProspectFileStatusResponse(BaseModel):
+    status: str
