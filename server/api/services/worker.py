@@ -5,7 +5,7 @@ from .csv_processor import process_csv_file
 from .persistor import persist
 
 
-def execute(db: Session, file_id: int) -> dict:
+def execute(db: Session, user_id: int, file_id: int) -> dict:
     """
     Process uploaded file.
     This worker method can be used both synchronously and asynchronously.
@@ -13,11 +13,12 @@ def execute(db: Session, file_id: int) -> dict:
     """
 
     # get file meta data from database
-    prospect_file = ProspectFileCrud.get_prospect_file_by_id(db, file_id)
+    prospect_file = ProspectFileCrud.get_prospect_file_by_id(db, user_id, file_id)
 
     # update status to in_progress
     ProspectFileCrud.update_prospect_file(
         db,
+        user_id,
         {
             "id": file_id,
             "status": ProspectFileStatus.in_progress,
@@ -47,13 +48,14 @@ def execute(db: Session, file_id: int) -> dict:
         prospects,
         {
             "force": prospect_file.force,
-            "user_id": prospect_file.user_id,
+            "user_id": user_id,
         },
     )
 
     # update status (done), rows_total, and rows_done
     ProspectFileCrud.update_prospect_file(
         db,
+        user_id,
         {
             "id": file_id,
             "rows_total": lines_read,
