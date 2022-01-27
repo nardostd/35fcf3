@@ -22,7 +22,9 @@ def persist(db: Session, prospects: set, params: dict) -> Set[Prospect]:
         }
 
         # check if prospect with same email exists
-        existing_prospect = ProspectCrud.get_prospect_by_email(db, prospect.email)
+        existing_prospect = ProspectCrud.get_prospect_by_email(
+            db, params["user_id"], prospect.email
+        )
 
         # if there is a prospect with same email and the force flag is true
         if existing_prospect is not None:
