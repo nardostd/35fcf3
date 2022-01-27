@@ -30,17 +30,17 @@ class ProspectFileCrud:
         if existing_file is None:
             # generate unique filename and save file to disk
             file_path = f"{settings.CSV_FILES_PATH}/{uuid.uuid4().hex}.csv"
-            # TODO loads everything into memory - improve!
-            with open(file_path, "wb+") as csv_file:
+            with open(file_path, "wb+", buffering=settings.BUFFER_SIZE) as csv_file:
                 csv_file.write(contents)
         else:
             # if file already exists, check if the incoming index parameters are different
             existing_email_index = existing_file.email_index
             existing_first_name_index = existing_file.first_name_index
             existing_last_name_index = existing_file.last_name_index
-            # if index parameters are exactly the same, do not process request
+            # if user is the same & index parameters are exactly the same, do not process request
             if (
-                existing_email_index == meta_data["email_index"]
+                existing_file.user_id == user_id
+                and existing_email_index == meta_data["email_index"]
                 and existing_first_name_index == meta_data["first_name_index"]
                 and existing_last_name_index == meta_data["last_name_index"]
             ):
@@ -67,21 +67,37 @@ class ProspectFileCrud:
         return prospect_file
 
     @classmethod
-    def update_prospect_file(cls, db: Session, data: ProspectFile) -> ProspectFile:
-        """Update ProspectFile"""
+    def update_prospect_file(
+        cls, db: Session, user_id: int, data: ProspectFile
+    ) -> ProspectFile:
+        """Update ProspectFile with given id and owned by current user"""
         prospect_file = ProspectFile(**data)
-        db.query(ProspectFile).filter(ProspectFile.id == data["id"]).update({**data})
+        db.query(ProspectFile).filter(ProspectFile.id == data["id"]).filter(
+            ProspectFile.user_id == user_id
+        ).update({**data})
         db.commit()
         return prospect_file
 
     @classmethod
-    def get_prospect_file_by_id(cls, db: Session, file_id: int) -> ProspectFile:
-        """Get the ProspectFile with given id"""
-        return db.query(ProspectFile).filter_by(id=file_id).first()
+    def get_prospect_file_by_id(
+        cls, db: Session, user_id: int, file_id: int
+    ) -> ProspectFile:
+        """Get the ProspectFile with given id and owned by current user"""
+        return (
+            db.query(ProspectFile)
+            .filter_by(user_id=user_id)
+            .filter_by(id=file_id)
+            .first()
+        )
 
     @classmethod
     def get_prospect_file_by_request_id(
-        cls, db: Session, request_id: str
+        cls, db: Session, request_id: str, user_id: int
     ) -> ProspectFile:
-        """Get the ProspectFile with given request id"""
-        return db.query(ProspectFile).filter_by(request_id=request_id).first()
+        """Get the ProspectFile with given request id and owned by the current user"""
+        return (
+            db.query(ProspectFile)
+            .filter_by(request_id=request_id)
+            .filter_by(user_id=user_id)
+            .first()
+        )
