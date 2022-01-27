@@ -1,4 +1,5 @@
 from typing import List, Set, Union
+from pydantic import EmailStr
 from sqlalchemy.orm.session import Session
 from api import schemas
 from api.models import Prospect
@@ -54,3 +55,24 @@ class ProspectCrud:
             .all()
         )
         return {row.id for row in res}
+
+    @classmethod
+    def update_prospect(
+        cls, db: Session, user_id: int, data: schemas.ProspectCreate
+    ) -> Prospect:
+        """Update existing Prospect owned by current user"""
+        prospect = Prospect(**data, user_id=user_id)
+        db.query(Prospect).filter(Prospect.email == data["email"]).filter(
+            Prospect.user_id == user_id
+        ).update({**data})
+        db.commit()
+        return prospect
+
+    @classmethod
+    def get_prospect_by_email(
+        cls, db: Session, user_id: int, email: EmailStr
+    ) -> Prospect:
+        """Get Prospect with given email and owned by current user"""
+        return (
+            db.query(Prospect).filter_by(email=email).filter_by(user_id=user_id).first()
+        )
