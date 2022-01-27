@@ -3,11 +3,13 @@ from api.crud.prospect_file import ProspectFileCrud
 from api.schemas.prospect_file import ProspectFileStatus
 
 
-def track_progress(request_id: str, db: Session):
+def track_progress(request_id: str, user_id: int, db: Session):
     """Tracks prospect file progress"""
 
     # pull file out of db
-    prospect_file = ProspectFileCrud.get_prospect_file_by_request_id(db, request_id)
+    prospect_file = ProspectFileCrud.get_prospect_file_by_request_id(
+        db, request_id, user_id
+    )
 
     # if file does not exist, return None
     if prospect_file is None:
