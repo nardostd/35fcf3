@@ -110,7 +110,7 @@ async def import_prospects(
         )
 
     # submit the file id for asynchronous processing
-    background_tasks.add_task(worker.execute, db, prospect_file.id)
+    background_tasks.add_task(worker.execute, db, current_user.id, prospect_file.id)
 
     return {
         "request_id": unique_request_id,
@@ -125,9 +125,20 @@ async def import_prospects(
     ],
     status_code=status.HTTP_200_OK,
 )
-def track_progress(request_id: str, db: Session = Depends(get_db)):
+def track_progress(
+    request_id: str,
+    current_user: schemas.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
 
-    result = tracker.track_progress(request_id, db)
+    if not current_user:
+        log.info("HTTP_401_UNAUTHORIZED")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User must be authenticated",
+        )
+
+    result = tracker.track_progress(request_id, current_user.id, db)
 
     if result is None:
         log.info("HTTP_404_NOT_FOUND")
